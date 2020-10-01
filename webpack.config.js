@@ -2,8 +2,9 @@
 const modoDev = process.env.NODE_ENV !== 'production'
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') //extrair o css para uma página específica
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const OptimizeCSSAssetsPlugin= require('optimize-css-assets-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+const FileLoader = require('file-loader')
 
 module.exports = {
     mode: modoDev ? 'development':'production', 
@@ -13,18 +14,26 @@ module.exports = {
         path: __dirname + '/public', //jogar o build para dentro da pasta /public 
     },
 
+    devServer: {
+        contentBase: "./public",
+        port: 9000
+    },
+
     optimization: {
         minimizer: [
-            new UglifyJsPlugin({
-                cache: true,
-                parallel: true //executar de uma forma mais rápida possível
-            }),
 
-            new OptimizeCSSAssetsPlugin({})
-        ]
+            new OptimizeCSSAssetsPlugin({})        ]
     },
 
     plugins: [
+
+    new TerserPlugin({
+        parallel: true,
+        terserOptions: {
+            ecma: 6,
+        },
+    }),
+
         new MiniCssExtractPlugin({
             filename: "style.css",
         })
@@ -40,6 +49,9 @@ module.exports = {
                 'css-loader',//interpreta @import, url() ...
                 'sass-loader'
             ]
+        },{
+            test: /\.(png|svg|jpg|gif)$/,
+            use: ['file-loader'] //para subir arquivos de imagens
         }]
     }
 }
